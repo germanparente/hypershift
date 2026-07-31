@@ -7714,6 +7714,21 @@ spec:
             - services
             - sshKey
             type: object
+            x-kubernetes-validations:
+            - message: Azure managed platform (ARO HCP) requires OAuthServer to use
+                Route
+              rule: self.platform.type != "Azure" || !has(self.platform.azure) ||
+                !has(self.platform.azure.azureAuthenticationConfig) || !has(self.platform.azure.azureAuthenticationConfig.azureAuthenticationConfigType)
+                || self.platform.azure.azureAuthenticationConfig.azureAuthenticationConfigType
+                == "WorkloadIdentities" || self.services.exists(s, s.service == "OAuthServer"
+                && s.servicePublishingStrategy.type == "Route")
+            - message: Self-managed Azure requires OAuthServer to use Route or LoadBalancer
+              rule: self.platform.type != "Azure" || !has(self.platform.azure) ||
+                !has(self.platform.azure.azureAuthenticationConfig) || !has(self.platform.azure.azureAuthenticationConfig.azureAuthenticationConfigType)
+                || self.platform.azure.azureAuthenticationConfig.azureAuthenticationConfigType
+                != "WorkloadIdentities" || self.services.exists(s, s.service == "OAuthServer"
+                && (s.servicePublishingStrategy.type == "Route" || s.servicePublishingStrategy.type
+                == "LoadBalancer"))
           status:
             description: Status is the latest observed status of the HostedCluster.
             properties:

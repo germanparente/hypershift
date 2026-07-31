@@ -276,6 +276,9 @@ const (
 )
 
 // HostedClusterSpec is the desired behavior of a HostedCluster.
+//
+// +kubebuilder:validation:XValidation:rule=`self.platform.type != "Azure" || !has(self.platform.azure) || !has(self.platform.azure.azureAuthenticationConfig) || !has(self.platform.azure.azureAuthenticationConfig.azureAuthenticationConfigType) || self.platform.azure.azureAuthenticationConfig.azureAuthenticationConfigType == "WorkloadIdentities" || self.services.exists(s, s.service == "OAuthServer" && s.servicePublishingStrategy.type == "Route")`,message="Azure managed platform (ARO HCP) requires OAuthServer to use Route"
+// +kubebuilder:validation:XValidation:rule=`self.platform.type != "Azure" || !has(self.platform.azure) || !has(self.platform.azure.azureAuthenticationConfig) || !has(self.platform.azure.azureAuthenticationConfig.azureAuthenticationConfigType) || self.platform.azure.azureAuthenticationConfig.azureAuthenticationConfigType != "WorkloadIdentities" || self.services.exists(s, s.service == "OAuthServer" && (s.servicePublishingStrategy.type == "Route" || s.servicePublishingStrategy.type == "LoadBalancer"))`,message="Self-managed Azure requires OAuthServer to use Route or LoadBalancer"
 type HostedClusterSpec struct {
 	// Release specifies the desired OCP release payload for the hosted cluster.
 	//
